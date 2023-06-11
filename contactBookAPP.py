@@ -4,7 +4,8 @@ import re
 import datetime
 import sqlite3
 import json
-from tkinter import filedialog
+import csv
+from tkinter import filedialog, PhotoImage, Scrollbar
 
 
 class Contact:
@@ -64,7 +65,109 @@ class Contact:
         """
         return f"Name: {self.name}, Phone Number: {self.phone_number}"
 
+class EditContactWindow(tk.Toplevel):
+    """
+        Initialize the EditContactWindow.
 
+        A class representing editor of contacts in the "Contact Book"
+
+        Args:
+            main_window (tk.Tk): The main window instance.
+            contact (Contact): The contact object to be edited.
+
+    """
+    def __init__(self, main_window, contact):
+        super().__init__()
+        self.title("Edit Contact")
+
+        self.main_window = main_window
+        self.contact = contact
+
+        self.LabelName = tk.Label(self, text='Name:')
+        self.LabelName.grid(row=0, column=0, sticky=tk.W)
+
+        self.LabelPhone = tk.Label(self, text='Phone:')
+        self.LabelPhone.grid(row=1, column=0, sticky=tk.W)
+
+        self.EntryName = tk.Entry(self)
+        self.EntryName.grid(row=0, column=1)
+        self.EntryName.insert(tk.END, contact.name)
+
+        self.EntryPhone = tk.Entry(self)
+        self.EntryPhone.grid(row=1, column=1)
+        self.EntryPhone.insert(tk.END, contact.phone_number)
+
+        self.ButtonSave = tk.Button(self, text='Save', command=self.save_contact)
+        self.ButtonSave.grid(row=2, column=0, columnspan=2, pady=10)
+
+    def save_contact(self):
+        """
+        Save the edited contact.
+
+        Retrieves the new name and phone number from the entry fields.
+        Updates the contact object with the new information.
+        Updates the contact in the main window.
+        Displays a success message and closes the EditContactWindow.
+
+        """
+        new_name = self.EntryName.get()
+        new_phone = self.EntryPhone.get()
+
+        # Update the contact attributes
+        self.contact.name = new_name
+        self.contact.phone_number = new_phone
+
+        # Update the contact in the main window
+        self.main_window.update_contact(self.contact)
+
+        messagebox.showinfo("Success", "Contact updated successfully.")
+        self.destroy()   
+
+class AuthorPage(tk.Toplevel):
+    """
+    A class representing the author information page.
+    """
+
+    def __init__(self, parent):
+        """
+        Initialize the AuthorPage object.
+        """
+        super().__init__(parent)
+        self.geometry("400x300")
+        self.title("Author Information")
+        self.configure(background="#FFFFF5")
+
+        self.LabelAuthor = tk.Label(self)
+        self.LabelAuthor.place(relx=0.2, rely=0.2, height=21, width=120)
+        self.LabelAuthor.configure(anchor='w')
+        self.LabelAuthor.configure(background="#FFFFF5")
+        self.LabelAuthor.configure(compound='left')
+        self.LabelAuthor.configure(disabledforeground="#a3a3a3")
+        self.LabelAuthor.configure(foreground="#000000")
+        self.LabelAuthor.configure(text='''Author: John Doe''')
+
+        self.ButtonClose = tk.Button(self, command=self.destroy)
+        self.ButtonClose.place(relx=0.4, rely=0.6, height=24, width=93)
+        self.ButtonClose.configure(activebackground="#ececec")
+        self.ButtonClose.configure(activeforeground="#000000")
+        self.ButtonClose.configure(background="#FFFFF5")
+        self.ButtonClose.configure(disabledforeground="#a3a3a3")
+        self.ButtonClose.configure(foreground="#000000")
+        self.ButtonClose.configure(highlightbackground="#d9d9d9")
+        self.ButtonClose.configure(highlightcolor="black")
+        self.ButtonClose.configure(pady="0")
+        self.ButtonClose.configure(text='''Close''')
+
+        self.transient(parent)
+        self.grab_set()
+        self.parent = parent
+
+    def show(self):
+        """
+        Show the author information page.
+        """
+        self.parent.withdraw()
+        self.lift()
 
 class Toplevel1:
     """
@@ -83,7 +186,7 @@ class Toplevel1:
         top.geometry("800x450+468+138")
         top.resizable(0, 0)
         top.title("Contact Book")
-        top.configure(background="#d9d9d9")
+        top.configure(background="#FFFFF5")
 
         # contacts list to store all data from file
         self.contacts = []
@@ -100,22 +203,33 @@ class Toplevel1:
         )
         self.connection.commit()
 
+        
+        #"Hamburger" toggle menu
+        self.head_frame = tk.Frame(root, background="#EEEED2", highlightbackground="cornsilk1")
+        self.toggle_button = tk.Button(self.head_frame, text = "M", background="#D8D8BF", foreground="cornsilk1", font=('Bold', 14), command=self.toggle_menu)
+        self.toggle_button.pack(side=tk.LEFT)
+        self.head_frame.pack(side=tk.TOP, fill=tk.X)
+        self.head_frame.pack_propagate(False)
+        self.head_frame.configure(height=20)  
+
+        
         # Welcome Label
-        self.Label1 = tk.Label(self.top)
-        self.Label1.place(relx=0.433, rely=0.067, height=21, width=94)
+        self.Label1 = tk.Label(self.head_frame)
+        self.Label1.place(relx=0.433, rely=0.030, height=21, width=99)
         self.Label1.configure(anchor='w')
-        self.Label1.configure(background="#d9d9d9")
+        self.Label1.configure(background="#EEEED2")
         self.Label1.configure(compound='left')
         self.Label1.configure(disabledforeground="#a3a3a3")
         self.Label1.configure(font="-family {Segoe UI} -size 11 -weight bold")
         self.Label1.configure(foreground="#000000")
-        self.Label1.configure(text='''Welcome''')
+        self.Label1.configure(text='''Contact Book''')
+
 
         # Name label
         self.Label2 = tk.Label(self.top)
-        self.Label2.place(relx=0.1, rely=0.2, height=21, width=54)
+        self.Label2.place(relx=0.1, rely=0.2, height=21, width=70)
         self.Label2.configure(anchor='w')
-        self.Label2.configure(background="#d9d9d9")
+        self.Label2.configure(background="#FFFFF5")
         self.Label2.configure(compound='left')
         self.Label2.configure(disabledforeground="#a3a3a3")
         self.Label2.configure(foreground="#000000")
@@ -127,16 +241,17 @@ class Toplevel1:
         self.Label2_1.configure(activebackground="#f9f9f9")
         self.Label2_1.configure(activeforeground="black")
         self.Label2_1.configure(anchor='w')
-        self.Label2_1.configure(background="#d9d9d9")
+        self.Label2_1.configure(background="#FFFFF5")
         self.Label2_1.configure(compound='left')
         self.Label2_1.configure(disabledforeground="#a3a3a3")
         self.Label2_1.configure(foreground="#000000")
-        self.Label2_1.configure(highlightbackground="#d9d9d9")
+        self.Label2_1.configure(highlightbackground="#FFFFF5")
         self.Label2_1.configure(highlightcolor="black")
         self.Label2_1.configure(text='''Phone:''')
 
         # Entry Field for Name
         self.EntryName = tk.Entry(self.top)
+        self.EntryName.bind("<Return>", lambda event: self.add_contact())
         self.EntryName.place(relx=0.217, rely=0.2, height=20, relwidth=0.223)
         self.EntryName.configure(background="white")
         self.EntryName.configure(disabledforeground="#a3a3a3")
@@ -146,12 +261,13 @@ class Toplevel1:
 
         # Entry Field for Phone
         self.EntryPhone = tk.Entry(self.top)
+        self.EntryPhone.bind("<Return>", lambda event: self.add_contact())
         self.EntryPhone.place(relx=0.217, rely=0.289, height=20, relwidth=0.223)
         self.EntryPhone.configure(background="white")
         self.EntryPhone.configure(disabledforeground="#a3a3a3")
         self.EntryPhone.configure(font="TkFixedFont")
         self.EntryPhone.configure(foreground="#000000")
-        self.EntryPhone.configure(highlightbackground="#d9d9d9")
+        self.EntryPhone.configure(highlightbackground="#FFFFF5")
         self.EntryPhone.configure(highlightcolor="black")
         self.EntryPhone.configure(insertbackground="black")
         self.EntryPhone.configure(selectbackground="blue")
@@ -159,40 +275,28 @@ class Toplevel1:
 
         # ListBox to show contact list
         self.contacts_listbox = tk.Listbox(self.top)
+        self.contacts_listbox.bind("<Double-Button-1>", self.edit_selected_contact)
         self.contacts_listbox.place(relx=0.6, rely=0.178, relheight=0.76
                                     , relwidth=0.36)
         self.contacts_listbox.configure(background="white")
-        self.contacts_listbox.configure(disabledforeground="#a3a3a3")
+        self.contacts_listbox.configure(disabledforeground="#a3a3a3")   
         self.contacts_listbox.configure(font="TkFixedFont")
         self.contacts_listbox.configure(foreground="#000000")
+
 
         # Button to add contacts
         self.ButtonAdd = tk.Button(self.top, command=self.add_contact)
         self.ButtonAdd.place(relx=0.233, rely=0.378, height=34, width=107)
         self.ButtonAdd.configure(activebackground="#ececec")
         self.ButtonAdd.configure(activeforeground="#000000")
-        self.ButtonAdd.configure(background="#d9d9d9")
+        self.ButtonAdd.configure(background="#FFFFF5")
         self.ButtonAdd.configure(compound='left')
         self.ButtonAdd.configure(disabledforeground="#a3a3a3")
         self.ButtonAdd.configure(foreground="#000000")
-        self.ButtonAdd.configure(highlightbackground="#d9d9d9")
+        self.ButtonAdd.configure(highlightbackground="#FFFFF5")
         self.ButtonAdd.configure(highlightcolor="black")
         self.ButtonAdd.configure(pady="0")
         self.ButtonAdd.configure(text='''Add Contact''')
-
-        # Button to save contacts
-        self.ButtonSaveContact = tk.Button(self.top, command=self.export_contacts)
-        self.ButtonSaveContact.place(relx=0.033, rely=0.867, height=34, width=100)
-        self.ButtonSaveContact.configure(activebackground="#ececec")
-        self.ButtonSaveContact.configure(activeforeground="#000000")
-        self.ButtonSaveContact.configure(background="#d9d9d9")
-        self.ButtonSaveContact.configure(compound='left')
-        self.ButtonSaveContact.configure(disabledforeground="#a3a3a3")
-        self.ButtonSaveContact.configure(foreground="#000000")
-        self.ButtonSaveContact.configure(highlightbackground="#d9d9d9")
-        self.ButtonSaveContact.configure(highlightcolor="black")
-        self.ButtonSaveContact.configure(pady="0")
-        self.ButtonSaveContact.configure(text='''Export Contacts''')
 
         # Button to delete contacts
         self.ButtonDeleteContact = tk.Button(self.top, command=self.delete_contact)
@@ -200,82 +304,176 @@ class Toplevel1:
                                        , width=87)
         self.ButtonDeleteContact.configure(activebackground="#ececec")
         self.ButtonDeleteContact.configure(activeforeground="#000000")
-        self.ButtonDeleteContact.configure(background="#d9d9d9")
+        self.ButtonDeleteContact.configure(background="#FFFFF5")
         self.ButtonDeleteContact.configure(compound='left')
         self.ButtonDeleteContact.configure(disabledforeground="#a3a3a3")
         self.ButtonDeleteContact.configure(foreground="#000000")
-        self.ButtonDeleteContact.configure(highlightbackground="#d9d9d9")
+        self.ButtonDeleteContact.configure(highlightbackground="#FFFFF5")
         self.ButtonDeleteContact.configure(highlightcolor="black")
         self.ButtonDeleteContact.configure(pady="0")
         self.ButtonDeleteContact.configure(text='''Delete Contact''')
 
-        # Button to load contacts
-        self.ButtonLoadContact = tk.Button(self.top, command=self.import_contacts)
-        self.ButtonLoadContact.place(relx=0.433, rely=0.867, height=34, width=100)
-
-        self.ButtonLoadContact.configure(activebackground="#ececec")
-        self.ButtonLoadContact.configure(activeforeground="#000000")
-        self.ButtonLoadContact.configure(background="#d9d9d9")
-        self.ButtonLoadContact.configure(compound='left')
-        self.ButtonLoadContact.configure(disabledforeground="#a3a3a3")
-        self.ButtonLoadContact.configure(foreground="#000000")
-        self.ButtonLoadContact.configure(highlightbackground="#d9d9d9")
-        self.ButtonLoadContact.configure(highlightcolor="black")
-        self.ButtonLoadContact.configure(pady="0")
-        self.ButtonLoadContact.configure(text='''Import Contacts''')
-
         # Field for search name
         self.EntrySearch = tk.Entry(self.top)
-        self.EntrySearch.place(relx=0.217, rely=0.556, height=20, relwidth=0.223)
-
+        self.EntrySearch.place(relx=0.61, rely=0.120, height=20, relwidth=0.223)
+        self.EntrySearch.bind("<Return>", lambda event: self.search_contacts())
+        self.EntrySearch.bind("<BackSpace>", lambda event: self.load_contacts())
         self.EntrySearch.configure(background="white")
         self.EntrySearch.configure(disabledforeground="#a3a3a3")
         self.EntrySearch.configure(font="TkFixedFont")
         self.EntrySearch.configure(foreground="#000000")
-        self.EntrySearch.configure(highlightbackground="#d9d9d9")
+        self.EntrySearch.configure(highlightbackground="#FFFFF5")
         self.EntrySearch.configure(highlightcolor="black")
         self.EntrySearch.configure(insertbackground="black")
         self.EntrySearch.configure(selectbackground="blue")
         self.EntrySearch.configure(selectforeground="white")
 
+        #Button to return to Contacts Home
+        home_button = PhotoImage(file="icon\home_16x16.png")
+        
+        self.HomeButton = tk.Button(self.top, command=self.load_contacts)
+        self.HomeButton.place(relx=0.58, rely=0.125, height=20, width=20)
+        self.HomeButton.configure(activebackground="#ececec")
+        self.HomeButton.configure(activeforeground="#000000")
+        self.HomeButton.configure(background="#FFFFF5")
+        self.HomeButton.configure(compound='left')
+        self.HomeButton.configure(disabledforeground="#a3a3a3")
+        self.HomeButton.configure(foreground="#000000")
+        self.HomeButton.configure(highlightbackground="#FFFFF5")
+        self.HomeButton.configure(highlightcolor="black")
+        self.HomeButton.configure(pady="0")
+        self.HomeButton.configure(text='''H''')
+
+        #Button for txt contacts backup
+        self.backup_button = tk.Button(self.top, text="Backup Contacts", command=self.backup_contacts)
+        self.backup_button.place(x=650, y=425, height=20)
+
         # Button to search contacts
         self.ButtonSearch = tk.Button(self.top, command=self.search_contacts)
-        self.ButtonSearch.place(relx=0.233, rely=0.644, height=34, width=107)
+        self.ButtonSearch.place(relx=0.84, rely=0.125, height=18, width=80)
         self.ButtonSearch.configure(activebackground="#ececec")
         self.ButtonSearch.configure(activeforeground="#000000")
-        self.ButtonSearch.configure(background="#d9d9d9")
+        self.ButtonSearch.configure(background="#FFFFF5")
         self.ButtonSearch.configure(compound='left')
         self.ButtonSearch.configure(disabledforeground="#a3a3a3")
         self.ButtonSearch.configure(foreground="#000000")
-        self.ButtonSearch.configure(highlightbackground="#d9d9d9")
+        self.ButtonSearch.configure(highlightbackground="#FFFFF5")
         self.ButtonSearch.configure(highlightcolor="black")
         self.ButtonSearch.configure(pady="0")
         self.ButtonSearch.configure(text='''Search''')
 
-        # Label for Name
-        self.Label2_2 = tk.Label(self.top)
-        self.Label2_2.place(relx=0.1, rely=0.556, height=21, width=54)
-        self.Label2_2.configure(activebackground="#f9f9f9")
-        self.Label2_2.configure(activeforeground="black")
-        self.Label2_2.configure(anchor='w')
-        self.Label2_2.configure(background="#d9d9d9")
-        self.Label2_2.configure(compound='left')
-        self.Label2_2.configure(disabledforeground="#a3a3a3")
-        self.Label2_2.configure(foreground="#000000")
-        self.Label2_2.configure(highlightbackground="#d9d9d9")
-        self.Label2_2.configure(highlightcolor="black")
-        self.Label2_2.configure(text='''Name:''')
-
+        #Label for Time
         self.timeLabel = tk.Label(self.top)
-        self.timeLabel.place(relx=0.75, rely=0.044, height=21, width=94)
+        self.timeLabel.place(relx=0.04, rely=0, height=20, width=94)
         self.timeLabel.configure(anchor='w')
-        self.timeLabel.configure(background="#d9d9d9")
+        self.timeLabel.configure(background="#EEEED2")
         self.timeLabel.configure(compound='left')
         self.timeLabel.configure(disabledforeground="#a3a3a3")
         self.timeLabel.configure(foreground="#000000")
         self.timeLabel.configure(text='''Label''')
 
         self.load_contacts()
+
+        #Author Page
+
+    def toggle_menu(self):
+        """
+        Create a toggle menu bar.
+
+        This function creates a toggle menu bar on the left side of the root window. It includes several buttons for importing and exporting contacts in different formats. The toggle menu can be collapsed by clicking the toggle button.
+
+        Note:
+            This function is a method of a class and assumes the existence of a root window and a toggle button in the GUI.
+
+        """
+            
+        def collapse_toggle_menu():
+            """
+            Collapse the toggle menu.
+
+            This nested function is called when the toggle button is clicked. It destroys the toggle menu frame, changes the toggle button text to 'M', and updates its command to call `self.toggle_menu` again.
+
+            """
+            toggle_menu.destroy()
+            self.toggle_button.config(text='M')
+            self.toggle_button.config(command=self.toggle_menu)
+        
+        toggle_menu = tk.Frame(root, bg="#8B8B69", highlightthickness=0.5, highlightcolor="black", highlightbackground="#CDCD9B")
+        window_height = root.winfo_height()
+        toggle_menu.place(x=0,y=20, height=window_height, width=200)
+        self.toggle_button.config(text='X')
+        self.toggle_button.config(command=collapse_toggle_menu) 
+
+
+        #Button to load contacts(from JSON)
+        ButtonLoadJSONContact = tk.Button(toggle_menu, foreground="lavenderblush1", command=self.import_contacts)
+        ButtonLoadJSONContact.configure(background="#8B8B69")
+        ButtonLoadJSONContact.configure(font=('BOLD',20))
+        ButtonLoadJSONContact.configure(bd=0, bg='#8B8B69', activebackground='beige', highlightbackground='blanchedalmond')
+        ButtonLoadJSONContact.configure(text='''Import JSON''')
+        ButtonLoadJSONContact.place(x=12,y=20)
+
+        #Button to load contacts(from CSV)
+        ButtonLoadCSVContact = tk.Button(toggle_menu, foreground="lavenderblush1", command=self.import_contacts_from_csv)
+        ButtonLoadCSVContact.configure(background="#8B8B69")
+        ButtonLoadCSVContact.configure(font=('BOLD',20))
+        ButtonLoadCSVContact.configure(bd=0, bg='#8B8B69', activebackground='beige', highlightbackground='blanchedalmond')
+        ButtonLoadCSVContact.configure(text='''Import CSV''')
+        ButtonLoadCSVContact.place(x=12,y=80)
+
+        # Button to export contacts(json)
+        ButtonSaveContactJSON = tk.Button(toggle_menu,  foreground="lavenderblush1", command=self.export_contacts)
+        ButtonSaveContactJSON.configure(background="#8B8B69")
+        ButtonSaveContactJSON.configure(font=('BOLD',20))
+        ButtonSaveContactJSON.configure(bd=0, bg='#8B8B69', activebackground='beige', highlightbackground='blanchedalmond')
+        ButtonSaveContactJSON.configure(text='''Export JSON''')
+        ButtonSaveContactJSON.place(x=12,y=140)
+        
+        # Button to export contacts(csv)
+        ButtonSaveContactCSV = tk.Button(toggle_menu, foreground="lavenderblush1", command=self.export_contacts_to_csv)
+        ButtonSaveContactCSV.configure(background="#8B8B69")
+        ButtonSaveContactCSV.configure(font=('BOLD',20))
+        ButtonSaveContactCSV.configure(bd=0, bg='#8B8B69', activebackground='beige', highlightbackground='blanchedalmond')
+        ButtonSaveContactCSV.configure(text='''Export CSV''')
+        ButtonSaveContactCSV.place(x=12,y=200)
+        
+
+    def edit_selected_contact(self, event):
+        """
+        Edit the selected contact.
+
+        This function is triggered when an event (e.g., double-clicking) occurs on the contacts_listbox. It retrieves the index of the selected contact, creates an EditContactWindow instance to edit the contact, and waits for the editing window to close.
+
+        Args:
+            event (tkinter.Event): The event triggered by the user.
+
+        """
+        selected_index = self.contacts_listbox.curselection()
+
+        if selected_index:
+            contact = self.contacts[selected_index[0]]
+            edit_window = EditContactWindow(self, contact)
+            edit_window.mainloop()
+
+    def update_contact(self, contact):
+        """
+        Update the contact in the GUI.
+
+        This function updates the contact details in the contacts listbox and the internal contacts list. It retrieves the index of the selected contact, replaces the corresponding entry in the listbox, and updates the contact in the contacts list.
+
+        Args:
+            contact (Contact): The updated contact object.
+
+        """
+        index = self.contacts_listbox.curselection()[0]
+
+        # Update the contact in the listbox
+        self.contacts_listbox.delete(index)
+        self.contacts_listbox.insert(index, f"{contact.name} - {contact.phone_number}")
+
+        # Update the contact in the contacts list
+        self.contacts[index] = contact
+
 
     def load_contacts(self):
         """
@@ -395,6 +593,88 @@ class Toplevel1:
         else:
             messagebox.showwarning("Error", "No contact selected.")
 
+    
+    def backup_contacts(self):
+        """
+        Backup the contacts to a text file.
+
+        This method prompts the user to select the location and filename for the backup text file.
+        Each contact is written as a separate line in the format "Name: Phone Number".
+        If the user cancels the file selection, the method returns without saving the file.
+        If the file path is provided, the contact data is written to the text file.
+        If any error occurs during the backup process, an error message is displayed.
+
+        Note:
+            The method assumes that the contacts list is already populated with contact information.
+
+        """
+        # Prompt the user to select the location and filename for the backup text file
+        filename = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
+
+        if not filename:
+            # User canceled the file selection
+            return
+
+        try:
+            # Open the text file in write mode
+            with open(filename, "w") as file:
+                for contact in self.contacts:
+                    name = contact.name
+                    phone_number = contact.phone_number
+                    file.write(f"{name}: {phone_number}\n")
+
+            messagebox.showinfo("Success", "Contacts backed up successfully!")
+        except Exception as e:
+            messagebox.showerror("Backup error occured", str(e))
+
+    
+
+    def export_contacts_to_csv(self):
+        """
+        Export the contacts as a CSV file.
+
+        This method creates a list of contact dictionaries from the contacts list.
+        Each contact dictionary contains the name and phone number of a contact.
+        The user is prompted to select the location and filename for the CSV file.
+        If the user cancels the file selection, the method returns without saving the file.
+        If the file path is provided, the contact data is written to the CSV file.
+        If any error occurs during the export process, an error message is displayed.
+
+        Note:
+            The method assumes that the contacts list is already populated with contact information.
+
+        """
+        # Create a list of contact dictionaries
+        contacts_data = []
+        for contact in self.contacts:
+            contact_data = {
+                "name": contact.name,
+                "phone_number": contact.phone_number
+            }
+            contacts_data.append(contact_data)
+
+        # Prompt the user to select the location and filename for the CSV file
+        file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
+
+        if not file_path:
+            # User canceled the file selection
+            return
+
+        try:
+            # Write the contact data to the CSV file
+            with open(file_path, "w", newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow(["Name", "Phone Number"])  # Writing header row
+                for contact_data in contacts_data:
+                    name = contact_data["name"]
+                    phone_number = contact_data["phone_number"]
+                    writer.writerow([name, phone_number])
+
+            messagebox.showinfo("Success", "Contacts saved successfully!")
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+
+
     def export_contacts(self):
         """
         Export the contacts as a JSON file.
@@ -435,12 +715,13 @@ class Toplevel1:
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
+
     def search_contacts(self):
         """
         Search for contacts based on a query.
 
         This method retrieves the search query from the EntrySearch widget.
-        It performs a case-insensitive search in the SQLite database for contacts matching the query.
+        It performs a case-insensitive search in the SQLite database for contacts matching the query in either name or phone number.
         If contacts are found, their names and phone numbers are displayed in the contacts_listbox.
         If no contacts match the query, a message box is shown with the title "No Results" and the message "No contacts found matching the search query".
         If no query is provided, the method reloads all the contacts using the load_contacts method and displays an error message.
@@ -458,8 +739,8 @@ class Toplevel1:
             connection = sqlite3.connect("contacts.db")
             cursor = connection.cursor()
 
-            # Perform a case-insensitive search for contacts matching the query
-            cursor.execute("SELECT * FROM contacts WHERE LOWER(name) LIKE ?", ('%' + query + '%',))
+            # Perform a case-insensitive search for contacts matching the query in name or phone number
+            cursor.execute("SELECT * FROM contacts WHERE LOWER(name) LIKE ? OR LOWER(phone_number) LIKE ?", ('%' + query + '%', '%' + query + '%'))
             results = cursor.fetchall()
 
             if results:
@@ -475,6 +756,69 @@ class Toplevel1:
         else:
             self.load_contacts()
             messagebox.showwarning("Error", "Please enter a search query.")
+
+
+
+    def import_contacts_from_csv(self):
+        """
+        Import contacts from a CSV file.
+
+        This method prompts the user to select a CSV file containing contact information.
+        If a file is selected, it reads the CSV data and inserts the contacts into the SQLite database.
+        After importing the contacts, the method retrieves them from the database and updates the contacts list and contacts_listbox.
+        If the CSV file format is invalid, an error message is displayed.
+
+        Note:
+            - The method assumes that the SQLite database named "contacts.db" is already created.
+            - The method assumes the presence of the contacts_listbox widget.
+        """
+        # Prompt the user to select a CSV file
+        file_path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
+
+        if not file_path:
+            # User canceled the file selection
+            return
+
+        try:
+            # Read the CSV data from the file
+            with open(file_path, "r") as file:
+                reader = csv.reader(file)
+                contacts_data = list(reader)
+
+            # Open a connection to the SQLite database
+            connection = sqlite3.connect("contacts.db")
+            cursor = connection.cursor()
+
+            # Clear the existing contacts table
+            cursor.execute("DROP TABLE IF EXISTS contacts")
+            cursor.execute("CREATE TABLE contacts (name TEXT, phone_number TEXT)")
+
+            # Insert the contacts from the CSV data into the database
+            for contact_data in contacts_data:
+                name = contact_data[0]
+                phone_number = contact_data[1]
+                if name and phone_number:
+                    cursor.execute("INSERT INTO contacts VALUES (?, ?)", (name, phone_number))
+
+            connection.commit()
+            connection.close()
+            self.contacts_listbox.delete(0, tk.END)
+            self.contacts = []
+
+            # Retrieve contacts from the database
+            self.cursor.execute("SELECT * FROM contacts")
+            rows = self.cursor.fetchall()
+
+            for row in rows:
+                name, phone = row
+                c = Contact(name, phone)
+                self.contacts.append(c)
+                self.contacts_listbox.insert(tk.END, f"{name}: {phone}")
+
+            messagebox.showinfo("Success", "Contacts imported successfully!")
+        except csv.Error:
+            messagebox.showerror("Error", "Invalid CSV file format!")
+
 
     def import_contacts(self):
         """
